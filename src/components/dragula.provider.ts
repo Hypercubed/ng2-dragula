@@ -60,12 +60,13 @@ export class DragulaService {
     let dragElm: any;
     let dragIndex: number;
     let dropIndex: number;
+    let dragSource: any;
     let sourceModel: any;
     drake.on('remove', (el: any, source: any) => {
       if (!drake.models) {
         return;
       }
-      sourceModel = drake.models[drake.containers.indexOf(source)];
+      sourceModel = drake.models[drake.containers.indexOf(dragSource)];
       sourceModel.splice(dragIndex, 1);
       // console.log('REMOVE');
       // console.log(sourceModel);
@@ -74,6 +75,7 @@ export class DragulaService {
     drake.on('drag', (el: any, source: any) => {
       dragElm = el;
       dragIndex = this.domIndexOf(el, source);
+      dragSource = source;
     });
     drake.on('drop', (dropElm: any, target: any, source: any) => {
       if (!drake.models || !target) {
