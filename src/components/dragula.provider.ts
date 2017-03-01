@@ -44,6 +44,11 @@ export class DragulaService {
     }
   }
 
+  public findModel(models: any[], container: any): any {
+    const m = models.find((d: any) => d.container === container);
+    return m ? m.value : undefined;
+  }
+
   public destroy(name: string): void {
     let bag = this.find(name);
     let i = this.bags.indexOf(bag);
@@ -59,35 +64,42 @@ export class DragulaService {
   private handleModels(name: string, drake: any): void {
     let dragElm: any;
     let dragIndex: number;
-    let dropIndex: number;
-    let sourceModel: any;
+    let dragSource: any;
+
     drake.on('remove', (el: any, source: any) => {
       if (!drake.models) {
         return;
       }
-      sourceModel = drake.models[drake.containers.indexOf(source)];
-      sourceModel.splice(dragIndex, 1);
-      // console.log('REMOVE');
-      // console.log(sourceModel);
-      this.removeModel.emit([name, el, source]);
+      const sourceModel = this.findModel(drake.models, dragSource);
+      if (sourceModel) {
+        sourceModel.splice(dragIndex, 1);
+        this.removeModel.emit([name, el, source]);
+      }
     });
+
     drake.on('drag', (el: any, source: any) => {
       dragElm = el;
       dragIndex = this.domIndexOf(el, source);
+      dragSource = source;
     });
+
     drake.on('drop', (dropElm: any, target: any, source: any) => {
       if (!drake.models || !target) {
         return;
       }
-      dropIndex = this.domIndexOf(dropElm, target);
-      sourceModel = drake.models[drake.containers.indexOf(source)];
-      // console.log('DROP');
-      // console.log(sourceModel);
+
+      const dropIndex = this.domIndexOf(dropElm, target);
+      const sourceModel = this.findModel(drake.models, source);
+
+      if (!sourceModel) {
+        return;
+      }
+
       if (target === source) {
         sourceModel.splice(dropIndex, 0, sourceModel.splice(dragIndex, 1)[0]);
       } else {
         let notCopy = dragElm === dropElm;
-        let targetModel = drake.models[drake.containers.indexOf(target)];
+        let targetModel = this.findModel(drake.models, target);
         let dropElmModel = notCopy ? sourceModel[dragIndex] : JSON.parse(JSON.stringify(sourceModel[dragIndex]));
 
         if (notCopy) {

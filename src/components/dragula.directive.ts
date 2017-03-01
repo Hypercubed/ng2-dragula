@@ -19,39 +19,38 @@ export class DragulaDirective implements OnInit, OnChanges {
   }
 
   public ngOnInit(): void {
-    // console.log(this.bag);
     let bag = this.dragulaService.find(this.dragula);
-    let checkModel = () => {
-      if (this.dragulaModel) {
-        if (this.drake.models) {
-          this.drake.models.push(this.dragulaModel);
-        } else {
-          this.drake.models = [this.dragulaModel];
-        }
-      }
-    };
     if (bag) {
       this.drake = bag.drake;
-      checkModel();
+      this.modelCheck();
       this.drake.containers.push(this.container);
     } else {
       this.drake = dragula([this.container], Object.assign({}, this.dragulaOptions));
-      checkModel();
+      this.modelCheck();
       this.dragulaService.add(this.dragula, this.drake);
     }
   }
 
+  private modelCheck() {
+    if (this.dragulaModel) {
+      this.drake.models = this.drake.models || [];
+      this.drake.models.push({
+        container: this.container,
+        value: this.dragulaModel
+      });
+    }
+  }
+
   public ngOnChanges(changes: {dragulaModel?: SimpleChange}): void {
-    // console.log('dragula.directive: ngOnChanges');
-    // console.log(changes);
-    if (changes && changes.dragulaModel) {
-      if (this.drake) {
-        if (this.drake.models) {
-          let modelIndex = this.drake.models.indexOf(changes.dragulaModel.previousValue);
-          this.drake.models.splice(modelIndex, 1, changes.dragulaModel.currentValue);
-        } else {
-          this.drake.models = [changes.dragulaModel.currentValue];
-        }
+    if (changes && changes.dragulaModel && this.drake) {
+      if (this.drake.models) {
+        const model = this.drake.models.find((d: any) => d.value === changes.dragulaModel.previousValue);
+        model.value = changes.dragulaModel.currentValue;
+      } else {
+        this.drake.models = [{
+          container: this.container,
+          value: changes.dragulaModel.currentValue
+        }];
       }
     }
   }
